@@ -1,37 +1,46 @@
 package com.dell.alekseyivashin.carinfo.controller;
 
 import com.dell.alekseyivashin.carinfo.model.Car;
-import com.dell.alekseyivashin.carinfo.model.Engine;
-import com.dell.alekseyivashin.carinfo.repository.CarRepository;
+import com.dell.alekseyivashin.carinfo.service.CarService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
-import java.util.List;
 
 @RestController
-@RequestMapping("/car")
-public class CarController {
+@RequestMapping("/cars")
+public class CarController extends AbstractController {
+
+
+    private final CarService carService;
 
     @Autowired
-    private CarRepository carRepository;
+    public CarController(CarService carService) {
+        this.carService = carService;
+    }
 
-    @GetMapping
-    public void add() {
-        Car car = new Car();
-        car.setOwnerName("test");
-        car.setModelYear(BigInteger.valueOf(3759));
-        Engine engine = new Engine();
-        engine.setMaxRpm((short) 20);
-        engine.setNumCylinders((byte) 5);
-        car.setEngine(engine);
+    @GetMapping("/{serialNumber}")
+    public ResponseEntity get(@PathVariable BigInteger serialNumber) {
+        Car car = carService.get(serialNumber);
+        return nonNullBodyOrError(car);
+    }
 
-        carRepository.insert(car);
+    @PutMapping()
+    public ResponseEntity update(@RequestBody Car car) {
+        Car updatedCar = carService.update(car);
+        return nonNullBodyOrError(updatedCar);
+    }
 
-        List<Car> all = carRepository.findAll();
-
-        System.out.println(all);
+    @DeleteMapping("/{serialNumber}")
+    public ResponseEntity delete(@PathVariable BigInteger serialNumber) {
+        Car deletedCar = carService.delete(serialNumber);
+        return ResponseEntity.ok(deletedCar);
     }
 }
